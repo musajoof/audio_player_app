@@ -1,24 +1,36 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import playIcon from "./assets/play.svg";
 import pauseIcon from "./assets/pause.svg";
 import skipPreviousIcon from "./assets/player-skip-back-filled.svg";
 import skipForwardIcon from "./assets/player-skip-forward-filled.svg";
 import nextIcon from "./assets/player-track-next-filled.svg";
 import prevIcon from "./assets/player-track-prev-filled.svg";
+import volumeIcon from "./assets/volume.svg";
 import audioFile from "./assets/audio.mp3";
 import quranFile from "./assets/quran.mp3";
 import "./App.css";
 
+function formatTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+}
+
 function App() {
   const audioRef = useRef();
 
+  const currentYear = new Date().getFullYear();
   const [playStatus, setPlayStatus] = useState("paused");
   const [nextStatus, setNextStatus] = useState(0);
-  const [prevStatus, setPrevStatus] = useState(0); // Change prevStatus to track index
+  const [prevStatus, setPrevStatus] = useState(0);
+  const [timeProgress, setTimeProgress] = useState("0:00"); // Initialize with a default time
+  const [duration, setDuration] = useState("0:00"); // Initialize with a default time
+  const [volume, setVolume] = useState(60);
 
-  const audioFiles = [audioFile, quranFile]; // List of audio files
+  const audioFiles = [audioFile, quranFile];
+  const progressBarRef = useRef();
 
-  const handlePlayStatus = () => {
+  function handlePlayStatus() {
     if (playStatus === "paused") {
       audioRef.current.play();
       setPlayStatus("playing");
@@ -43,7 +55,7 @@ function App() {
   const handleNextStatus = () => {
     const nextAudio = (nextStatus + 1) % audioFiles.length;
     setNextStatus(nextAudio);
-    setPrevStatus(nextStatus); // Update prevStatus
+    setPrevStatus(nextStatus);
     audioRef.current.src = audioFiles[nextAudio];
     audioRef.current.play();
     setPlayStatus("playing");
@@ -51,12 +63,36 @@ function App() {
 
   const handlePrevStatus = () => {
     const prevAudio = (prevStatus - 1 + audioFiles.length) % audioFiles.length;
-    setNextStatus(prevStatus); // Update nextStatus
+    setNextStatus(prevStatus);
     setPrevStatus(prevAudio);
     audioRef.current.src = audioFiles[prevAudio];
     audioRef.current.play();
     setPlayStatus("playing");
   }
+
+  const handleTimeUpdate = () => {
+    const currentTime = audioRef.current.currentTime;
+    const totalDuration = audioRef.current.duration;
+  
+    const progress = (currentTime / totalDuration) * 100; // Calculate progress percentage
+    progressBarRef.current.style.setProperty('--range-progress', `${progress}%`); // Set the --range-progress variable
+    setTimeProgress(formatTime(currentTime));
+    setDuration(formatTime(totalDuration));
+  };
+  
+
+  useEffect(() => {
+    audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    return () => {
+      audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, []);
+
+  const handleVolumeChange = (e) => {
+    const newVolume = e.target.value / 100;
+    audioRef.current.volume = newVolume;
+    setVolume(e.target.value);
+  };
 
   return (
     <div className="card">
@@ -84,8 +120,40 @@ function App() {
           <button onClick={handleNextStatus}>
             <img src={nextIcon} alt={"nextIcon"} />
           </button>
-        </div>
+
+          <div className="volume-wrapper">
+            <div className="progress">
+              <span className="time current">{timeProgress}</span>
+              <input 
+                type="range" 
+                ref={progressBarRef}
+                defaultValue="0"
+                onChange={handleTimeUpdate}
+              />
+              <span className="time">{duration}</span>
+            </div>
+
+            <div className="controls-wrapper">
+              <div className="controls">{/* ... */}</div>
+              <div className="volume">
+                <button>
+                  <img src={volumeIcon} alt={"volume Icon"} />
+                </button>
+                <input 
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={volume}
+                  onChange={handleVolumeChange}
+                />
+              </div>
+            </div>
+          </div>
+        </div> 
       </div>
+      <footer>
+        <p> &copy; Develop By Musa Joof {currentYear}, All Right Reserved. </p>
+      </footer>
     </div>
   )
 }

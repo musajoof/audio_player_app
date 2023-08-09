@@ -1,4 +1,5 @@
 #root {
+  /* background-color: #dedede; */
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -34,12 +35,17 @@
 }
 
 .card {
-  color: white;
+  color: #d3cfcf;
   background-color: #333e41aa;
   border-radius: 15px;
-  box-shadow: 2px 5px 5px 0 rosybrown;
-  border: 2 solid gray;
+  box-shadow: 0px 3px 7px 5px darkgrey;
+  border: 1px solid gray;
   padding: 2em;
+}
+
+.card h1 {
+  text-transform: uppercase;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .read-the-docs {
@@ -49,7 +55,7 @@
 .audio-player {
   display: block;
   padding: 10px 15px;
-  background-color: #dedede;
+  background-color: #d3cfcf;
   border-radius: 15px;
   text-align: center;
 }
@@ -60,4 +66,37 @@
   padding: 0;
   border-radius: 50%;
   margin: 3px;
+}
+
+input[type="range"] {  
+  --range-progress: 0;
+  /* ... */
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, #f50 0 var(--range-progress), #dedede var(--range-progress) 100%);
+  /* ... */
+}
+
+input[type="range"]::-moz-range-track {
+  background: linear-gradient(to right, #f50 0 var(--range-progress), #dedede var(--range-progress) 100%);
+  /* ... */
+}
+
+input[type="range"]::-ms-fill-lower {
+  background: linear-gradient(to right, #f50 0 var(--range-progress), #dedede var(--range-progress) 100%);
+  /* ... */
+}
+
+
+
+.volume-wrapper {
+  color: black;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+footer {
+  margin-top: 30px;
 }
