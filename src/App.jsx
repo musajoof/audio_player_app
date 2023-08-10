@@ -20,12 +20,14 @@ function App() {
   const audioRef = useRef();
 
   const currentYear = new Date().getFullYear();
+
   const [playStatus, setPlayStatus] = useState("paused");
   const [nextStatus, setNextStatus] = useState(0);
   const [prevStatus, setPrevStatus] = useState(0);
   const [timeProgress, setTimeProgress] = useState("0:00"); // Initialize with a default time
   const [duration, setDuration] = useState("0:00"); // Initialize with a default time
   const [volume, setVolume] = useState(60);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(nextStatus); // Initialize with the first track
 
   const audioFiles = [audioFile, quranFile];
   const progressBarRef = useRef();
@@ -55,16 +57,18 @@ function App() {
   const handleNextStatus = () => {
     const nextAudio = (nextStatus + 1) % audioFiles.length;
     setNextStatus(nextAudio);
-    setPrevStatus(nextStatus);
+    setCurrentTrackIndex(nextAudio); // Update the current track index
     audioRef.current.src = audioFiles[nextAudio];
     audioRef.current.play();
     setPlayStatus("playing");
   }
+  
 
   const handlePrevStatus = () => {
     const prevAudio = (prevStatus - 1 + audioFiles.length) % audioFiles.length;
     setNextStatus(prevStatus);
     setPrevStatus(prevAudio);
+    setCurrentTrackIndex(prevAudio); // Update the current track index
     audioRef.current.src = audioFiles[prevAudio];
     audioRef.current.play();
     setPlayStatus("playing");
@@ -83,10 +87,12 @@ function App() {
 
   useEffect(() => {
     audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    audioRef.current.addEventListener('ended', handleNextStatus);
     return () => {
       audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
+      audioRef.current.removeEventListener('ended', handleNextStatus);
     };
-  }, []);
+  }, [nextStatus]);
 
   const handleVolumeChange = (e) => {
     const newVolume = e.target.value / 100;
@@ -97,59 +103,73 @@ function App() {
   return (
     <div className="card">
       <h1>Audio Player App</h1>
-      <div>
-        <div className="audio-player">
-          <button onClick={handlePrevStatus}>
-            <img src={prevIcon} alt={"prevIcon"} />
-          </button>
-          <button onClick={handleSkipBackwardStatus}>
-            <img src={skipPreviousIcon} alt={"previous"} />
-          </button>
-          <button onClick={handlePlayStatus}>
-            <img
-              src={playStatus === "playing" ? pauseIcon : playIcon}
-              alt={"Play"}
-            />
-          </button>
-          <button onClick={handleSkipForwardStatus}>
-            <img src={skipForwardIcon} alt={"skipForwardIcon"} />
-          </button>
-          <audio id="audio" ref={audioRef}>
-            <source src={audioFiles[nextStatus]} />
-          </audio>
-          <button onClick={handleNextStatus}>
-            <img src={nextIcon} alt={"nextIcon"} />
-          </button>
-
-          <div className="volume-wrapper">
-            <div className="progress">
-              <span className="time current">{timeProgress}</span>
-              <input 
-                type="range" 
-                ref={progressBarRef}
-                defaultValue="0"
-                onChange={handleTimeUpdate}
+      <div className="wrapper">
+        <div>
+          <div className="audio-player">
+            <button onClick={handlePrevStatus}>
+              <img src={prevIcon} alt={"prevIcon"} />
+            </button>
+            <button onClick={handleSkipBackwardStatus}>
+              <img src={skipPreviousIcon} alt={"previous"} />
+            </button>
+            <button onClick={handlePlayStatus}>
+              <img
+                src={playStatus === "playing" ? pauseIcon : playIcon}
+                alt={"Play"}
               />
-              <span className="time">{duration}</span>
-            </div>
+            </button>
+            <button onClick={handleSkipForwardStatus}>
+              <img src={skipForwardIcon} alt={"skipForwardIcon"} />
+            </button>
+            <audio id="audio" ref={audioRef}>
+              <source src={audioFiles[nextStatus]} />
+            </audio>
+            <button onClick={handleNextStatus}>
+              <img src={nextIcon} alt={"nextIcon"} />
+            </button>
 
-            <div className="controls-wrapper">
-              <div className="controls">{/* ... */}</div>
-              <div className="volume">
-                <button>
-                  <img src={volumeIcon} alt={"volume Icon"} />
-                </button>
+            <div className="volume-wrapper">
+              <div className="progress">
+                <span className="time-current">{timeProgress}</span>
                 <input 
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={volume}
-                  onChange={handleVolumeChange}
+                  type="range" 
+                  ref={progressBarRef}
+                  defaultValue="0"
+                  onChange={handleTimeUpdate}
                 />
+                <span className="time">{duration}</span>
+              </div>
+
+              <div className="controls-wrapper">
+                {/* <div className="controls">...</div> */}
+                <div className="volume">
+                  <button>
+                    <img src={volumeIcon} alt={"volume Icon"} />
+                  </button>
+                  <input 
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={volume}
+                    onChange={handleVolumeChange}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </div> 
+          </div> 
+        </div>
+
+        <aside className="aside">
+          <h2>Track List</h2>
+          <ul>
+            {audioFiles.map((_track, index) => (
+              <li key={index} className={index === currentTrackIndex ? 'current' : ''}>
+                {index === currentTrackIndex ? 'Now Playing: ' : ''}
+                <span>{`Track ${index + 1 }`}</span>
+              </li>
+            ))}
+          </ul>
+        </aside>
       </div>
       <footer>
         <p> &copy; Develop By Musa Joof {currentYear}, All Right Reserved. </p>
